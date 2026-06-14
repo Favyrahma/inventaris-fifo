@@ -14,15 +14,21 @@ if (!$koneksi) {
 }
 mysqli_set_charset($koneksi, "utf8mb4");
 
-// Threshold EWS — ambil dari DB jika tabel setting_toko ada, fallback ke default
+// Threshold EWS & info toko — ambil dari DB jika tabel setting_toko ada, fallback ke default
 $THRESHOLD_MERAH  = 30;
 $THRESHOLD_KUNING = 90;
+$NAMA_TOKO   = 'Toko Saya';
+$ALAMAT_TOKO = '';
+$HP_TOKO     = '';
 $q_set = mysqli_query($koneksi, "SHOW TABLES LIKE 'setting_toko'");
 if (mysqli_num_rows($q_set) > 0) {
     $setting = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM setting_toko LIMIT 1"));
     if ($setting) {
         $THRESHOLD_MERAH  = $setting['threshold_merah']  ?? 30;
         $THRESHOLD_KUNING = $setting['threshold_kuning'] ?? 90;
+        $NAMA_TOKO   = $setting['nama_toko'] ?? 'Toko Saya';
+        $ALAMAT_TOKO = $setting['alamat']    ?? '';
+        $HP_TOKO     = $setting['no_hp']     ?? '';
     }
 }
 
