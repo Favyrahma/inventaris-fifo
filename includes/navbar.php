@@ -35,9 +35,11 @@ function nav_active($page, $current) {
                 <li class="nav-item">
                     <a class="nav-link <?= nav_active('indeks.php', $current) ?>" href="indeks.php">Dashboard</a>
                 </li>
+                <?php if ($role === 'admin'): ?>
                 <li class="nav-item">
                     <a class="nav-link <?= nav_active('produk.php', $current) ?>" href="produk.php">Stok Produk (Batch)</a>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a class="nav-link <?= nav_active('transaksi.php', $current) ?>" href="transaksi.php">Transaksi Keluar</a>
                 </li>

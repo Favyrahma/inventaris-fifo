@@ -87,52 +87,69 @@ body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
   <!-- Kartu statistik -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-danger bg-opacity-15 text-danger"><i class="bi bi-exclamation-octagon-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-danger"><?= $r_kritis['t'] ?></div><div class="text-muted small">Kritis</div></div>
+      <a href="produk.php?status=kritis" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-danger bg-opacity-15 text-danger"><i class="bi bi-exclamation-octagon-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-danger"><?= $r_kritis['t'] ?></div><div class="text-muted small">Kritis</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+    
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-warning bg-opacity-15 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-warning"><?= $r_warning['t'] ?></div><div class="text-muted small">Peringatan</div></div>
+      <a href="produk.php?status=warning" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-warning bg-opacity-15 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-warning"><?= $r_warning['t'] ?></div><div class="text-muted small">Peringatan</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+    
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-success bg-opacity-15 text-success"><i class="bi bi-check-circle-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-success"><?= $r_aman['t'] ?></div><div class="text-muted small">Aman</div></div>
+      <a href="produk.php?status=aman" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-success bg-opacity-15 text-success"><i class="bi bi-check-circle-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-success"><?= $r_aman['t'] ?></div><div class="text-muted small">Aman</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+    
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-secondary bg-opacity-15 text-secondary"><i class="bi bi-x-circle-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-secondary"><?= $r_expired['t'] ?></div><div class="text-muted small">Expired</div></div>
+      <a href="produk.php?status=expired" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-secondary bg-opacity-15 text-secondary"><i class="bi bi-x-circle-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-secondary"><?= $r_expired['t'] ?></div><div class="text-muted small">Expired</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+    
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-primary bg-opacity-15 text-primary"><i class="bi bi-box-seam-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-primary"><?= $r_produk['t'] ?></div><div class="text-muted small">Produk</div></div>
+      <a href="produk.php" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-primary bg-opacity-15 text-primary"><i class="bi bi-box-seam-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-primary"><?= $r_produk['t'] ?></div><div class="text-muted small">Produk</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
+    
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="card stat-card h-100 p-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon bg-info bg-opacity-15 text-info"><i class="bi bi-cart-check-fill"></i></div>
-          <div><div class="fw-bold fs-4 text-info"><?= $r_trx_hari['t'] ?></div><div class="text-muted small">Trx Hari Ini</div></div>
+      <a href="laporan_transaksi.php?filter=hari_ini" class="text-decoration-none">
+        <div class="card stat-card h-100 p-3" style="cursor:pointer;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-info bg-opacity-15 text-info"><i class="bi bi-cart-check-fill"></i></div>
+            <div><div class="fw-bold fs-4 text-info"><?= $r_trx_hari['t'] ?></div><div class="text-muted small">Trx Hari Ini</div></div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
   </div>
 
