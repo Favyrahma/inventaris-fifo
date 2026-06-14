@@ -58,7 +58,7 @@ $q_kat = mysqli_query($koneksi,"SELECT * FROM kategori ORDER BY nama_kategori");
     <?php if ($pesan === 'success'): ?>
         <div class="alert alert-success alert-dismissible">
             <i class="bi bi-check-circle me-1"></i>
-            Batch berhasil ditambahkan! <a href="index.php" class="alert-link">Kembali ke Dashboard</a> atau tambah batch lagi di bawah.
+            Batch berhasil ditambahkan! <a href="indeks.php" class="alert-link">Kembali ke Dashboard</a> atau tambah batch lagi di bawah.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php elseif ($pesan): ?>
