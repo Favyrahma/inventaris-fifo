@@ -30,7 +30,7 @@ function nav_active($page, $current) {
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="#navMain">
+        <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link <?= nav_active('indeks.php', $current) ?>" href="indeks.php">Dashboard</a>
@@ -41,14 +41,37 @@ function nav_active($page, $current) {
                 <li class="nav-item">
                     <a class="nav-link <?= nav_active('transaksi.php', $current) ?>" href="transaksi.php">Transaksi Keluar</a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle <?= in_array($current,['laporan_stok.php','laporan_expired.php','laporan_transaksi.php'])?'active':'' ?>"
+                       href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i>Laporan
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item <?= nav_active('laporan_stok.php',$current) ?>" href="laporan_stok.php">
+                            <i class="bi bi-archive me-1"></i>Laporan Stok
+                        </a></li>
+                        <li><a class="dropdown-item <?= nav_active('laporan_expired.php',$current) ?>" href="laporan_expired.php">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Laporan Kedaluwarsa
+                            <?php if ($total_alert > 0): ?>
+                                <span class="badge bg-danger ms-1"><?= $total_alert ?></span>
+                            <?php endif; ?>
+                        </a></li>
+                        <li><a class="dropdown-item <?= nav_active('laporan_transaksi.php',$current) ?>" href="laporan_transaksi.php">
+                            <i class="bi bi-receipt me-1"></i>Laporan Transaksi
+                        </a></li>
+                    </ul>
+                </li>
                 <?php if ($role === 'admin'): ?>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle <?= in_array($current,['kategori.php','users.php','setting.php'])?'active':'' ?>"
+                       href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-gear me-1"></i>Master Data
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="kategori.php"><i class="bi bi-tags me-1"></i>Kategori</a></li>
-                        <li><a class="dropdown-item" href="users.php"><i class="bi bi-people me-1"></i>Pengguna</a></li>
+                        <li><a class="dropdown-item <?= nav_active('kategori.php',$current) ?>" href="kategori.php"><i class="bi bi-tags me-1"></i>Kategori</a></li>
+                        <li><a class="dropdown-item <?= nav_active('users.php',$current) ?>" href="users.php"><i class="bi bi-people me-1"></i>Pengguna</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item <?= nav_active('setting.php',$current) ?>" href="setting.php"><i class="bi bi-sliders me-1"></i>Pengaturan EWS</a></li>
                     </ul>
                 </li>
                 <?php endif; ?>
