@@ -127,7 +127,7 @@ $q_kat = mysqli_query($koneksi,"SELECT * FROM kategori ORDER BY nama_kategori");
                         <textarea name="keterangan" class="form-control" rows="2" placeholder="Opsional..."></textarea>
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2">
-                        <a href="index.php" class="btn btn-secondary">Batal</a>
+                        <a href="indeks.php" class="btn btn-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Batch</button>
                     </div>
                 </div>
