@@ -50,11 +50,11 @@
       ORDER BY p.tgl_expired ASC");
 
   // URL untuk tiap kartu
-  $url_kritis   = "laporan_expired.php?filter=risiko";
-  $url_warning  = "laporan_expired.php?filter=all";
+  $url_kritis   = "laporan_expired.php?filter=kritis";
+  $url_warning  = "laporan_expired.php?filter=warning";
   $url_aman     = "produk.php?status=aman";
   $url_expired  = "laporan_expired.php?filter=expired";
-  $url_produk   = "produk.php";
+  $url_produk   = "laporan_stok.php";
   $url_trx      = "laporan_transaksi.php?dari=$tgl&sampai=$tgl";
   ?>
   <?php include 'includes/navbar.php'; ?>
@@ -214,10 +214,10 @@
         </a>
       </div>
 
-      <!-- Produk → produk.php -->
+      <!-- Produk → laporan_stok.php -->
       <div class="col-6 col-md-3 col-lg-2">
         <a href="<?= $url_produk ?>" class="stat-card card c-primary h-100 p-3"
-          title="Lihat semua produk & batch">
+          title="Lihat laporan stok seluruh produk">
           <div class="d-flex align-items-center gap-3">
             <div class="stat-icon bg-primary bg-opacity-15 text-primary">
               <i class="bi bi-box-seam-fill"></i>
@@ -227,7 +227,7 @@
               <div class="text-muted small">Produk</div>
             </div>
           </div>
-          <div class="click-hint"><i class="bi bi-arrow-right-circle"></i> Lihat semua produk</div>
+          <div class="click-hint"><i class="bi bi-arrow-right-circle"></i> Lihat laporan stok</div>
         </a>
       </div>
 
@@ -406,10 +406,10 @@
   // ── Donat chart EWS ──────────────────────────────────────────────────────
   // Link tiap segmen donat ke halaman yang sesuai
   const donatLinks = [
-      '<?= $url_kritis ?>',
-      '<?= $url_warning ?>',
-      '<?= $url_aman ?>',
-      '<?= $url_expired ?>'
+      '<?= $url_kritis ?>',    // merah  → kritis saja
+      '<?= $url_warning ?>',   // kuning → peringatan saja
+      '<?= $url_aman ?>',      // hijau  → produk aman
+      '<?= $url_expired ?>'    // abu    → expired saja
   ];
 
   const ewsChart = new Chart(document.getElementById('chartEWS'), {
