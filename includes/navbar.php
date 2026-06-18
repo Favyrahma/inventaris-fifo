@@ -61,6 +61,10 @@
                             <li><a class="dropdown-item <?= nav_active('laporan_transaksi.php',$current) ?>" href="laporan_transaksi.php">
                                 <i class="bi bi-receipt me-1"></i>Laporan Transaksi
                             </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item <?= nav_active('riwayat_stok.php',$current) ?>" href="riwayat_stok.php">
+                                <i class="bi bi-journal-text me-1"></i>Riwayat Stok Log
+                            </a></li>
                         </ul>
                     </li>
                     <?php if ($role === 'admin'): ?>
