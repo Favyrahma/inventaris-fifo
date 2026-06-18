@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id']=$u['id'];
         $_SESSION['user_nama']=$u['nama'];
         $_SESSION['user_role']=$u['role'];
+        $_SESSION['login_time'] = time();       // untuk batas waktu mutlak
+        $_SESSION['last_activity'] = time();    // untuk batas waktu idle
+        $_SESSION['last_regen'] = time();       // untuk regenerasi ID sesi
         header("Location: indeks.php");
         exit;
     } else { $error="Username atau password salah."; }
