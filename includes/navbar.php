@@ -89,6 +89,10 @@
                             <span class="badge bg-secondary ms-1"><?= ucfirst($role) ?></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item <?= nav_active('profil.php',$current) ?>" href="profil.php">
+                            <i class="bi bi-person-gear me-1"></i>Profil & Password
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
                         </ul>
                     </li>
