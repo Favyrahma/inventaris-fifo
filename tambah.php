@@ -1,106 +1,199 @@
-    <?php
-    include 'koneksi.php';
-    include 'includes/navbar.php';
+<?php
+include 'koneksi.php';
+include 'includes/navbar.php';
 
-    // Generate no batch otomatis
-    $q_last   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT no_batch FROM produk ORDER BY id DESC LIMIT 1"));
-    $last_num = 0;
-    if ($q_last) {
-        preg_match('/(\d+)$/', $q_last['no_batch'], $m);
-        $last_num = isset($m[1]) ? intval($m[1]) : 0;
-    }
-    $auto_batch = 'BCH-' . str_pad($last_num + 1, 3, '0', STR_PAD_LEFT);
+// Generate no batch otomatis
+// (query ini tidak pakai input user, aman tanpa prepared statement)
+$q_last   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT no_batch FROM produk ORDER BY id DESC LIMIT 1"));
+$last_num = 0;
+if ($q_last) {
+    preg_match('/(\d+)$/', $q_last['no_batch'], $m);
+    $last_num = isset($m[1]) ? intval($m[1]) : 0;
+}
+$auto_batch = 'BCH-' . str_pad($last_num + 1, 3, '0', STR_PAD_LEFT);
 
-    $pesan      = '';
-    $err        = [];          // kumpul semua error sebelum INSERT
-    $old        = [];          // simpan nilai lama agar form tidak kosong setelah gagal
+$pesan = '';
+$err   = [];    // kumpul semua error sebelum INSERT
+$old   = [];    // simpan nilai lama agar form tidak kosong setelah gagal
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-        // ── Ambil & bersihkan input ──────────────────────────────────────────
-        $old['no_batch']    = trim($_POST['no_batch']    ?? '');
-        $old['nama_produk'] = trim($_POST['nama_produk'] ?? '');
-        $old['kategori_id'] = intval($_POST['kategori_id'] ?? 0);
-        $old['harga_beli']  = floatval(str_replace(['.', ','], ['', ''], $_POST['harga_beli'] ?? 0));
-        $old['harga_jual']  = floatval(str_replace(['.', ','], ['', ''], $_POST['harga_jual'] ?? 0));
-        $old['stok']        = intval($_POST['stok'] ?? 0);
-        $old['tgl_masuk']   = $_POST['tgl_masuk']   ?? '';
-        $old['tgl_expired'] = $_POST['tgl_expired'] ?? '';
-        $old['keterangan']  = trim($_POST['keterangan'] ?? '');
+    // ── Ambil & bersihkan input ──────────────────────────────────────────
+    $old['no_batch']    = trim($_POST['no_batch']    ?? '');
+    $old['nama_produk'] = trim($_POST['nama_produk'] ?? '');
+    $old['kategori_id'] = intval($_POST['kategori_id'] ?? 0);
+    $old['harga_beli']  = floatval(str_replace(['.', ','], ['', ''], $_POST['harga_beli'] ?? 0));
+    $old['harga_jual']  = floatval(str_replace(['.', ','], ['', ''], $_POST['harga_jual'] ?? 0));
+    $old['stok']        = intval($_POST['stok'] ?? 0);
+    $old['tgl_masuk']   = $_POST['tgl_masuk']   ?? '';
+    $old['tgl_expired'] = $_POST['tgl_expired'] ?? '';
+    $old['keterangan']  = trim($_POST['keterangan'] ?? '');
 
-        $no_batch    = mysqli_real_escape_string($koneksi, $old['no_batch']);
-        $nama_produk = mysqli_real_escape_string($koneksi, $old['nama_produk']);
-        $keterangan  = mysqli_real_escape_string($koneksi, $old['keterangan']);
+    // ── DIHAPUS: baris mysqli_real_escape_string tidak diperlukan lagi ──
+    // Prepared statement otomatis menangani escaping, jadi 3 baris ini
+    // cukup dihapus seluruhnya:
+    //   $no_batch    = mysqli_real_escape_string($koneksi, $old['no_batch']);
+    //   $nama_produk = mysqli_real_escape_string($koneksi, $old['nama_produk']);
+    //   $keterangan  = mysqli_real_escape_string($koneksi, $old['keterangan']);
 
-        // ── Validasi PHP (server-side) ───────────────────────────────────────
-        if ($old['no_batch'] === '')
-            $err['no_batch']    = 'Nomor batch wajib diisi.';
+    // ── Validasi PHP (server-side) ───────────────────────────────────────
+    if ($old['no_batch'] === '')
+        $err['no_batch']    = 'Nomor batch wajib diisi.';
 
-        if ($old['nama_produk'] === '')
-            $err['nama_produk'] = 'Nama produk wajib diisi.';
+    if ($old['nama_produk'] === '')
+        $err['nama_produk'] = 'Nama produk wajib diisi.';
 
-        if ($old['kategori_id'] === 0)
-            $err['kategori_id'] = 'Pilih kategori produk.';
+    if ($old['kategori_id'] === 0)
+        $err['kategori_id'] = 'Pilih kategori produk.';
 
-        if ($old['stok'] < 1)
-            $err['stok']        = 'Jumlah stok minimal 1 unit.';
+    if ($old['stok'] < 1)
+        $err['stok']        = 'Jumlah stok minimal 1 unit.';
 
-        if ($old['harga_jual'] > 0 && $old['harga_beli'] > 0 && $old['harga_jual'] < $old['harga_beli'])
-            $err['harga_jual']  = 'Harga jual tidak boleh lebih kecil dari harga beli.';
+    if ($old['harga_jual'] > 0 && $old['harga_beli'] > 0 && $old['harga_jual'] < $old['harga_beli'])
+        $err['harga_jual']  = 'Harga jual tidak boleh lebih kecil dari harga beli.';
 
-        if ($old['tgl_masuk'] === '')
-            $err['tgl_masuk']   = 'Tanggal masuk wajib diisi.';
+    if ($old['tgl_masuk'] === '')
+        $err['tgl_masuk']   = 'Tanggal masuk wajib diisi.';
 
-        if ($old['tgl_expired'] === '')
-            $err['tgl_expired'] = 'Tanggal kedaluwarsa wajib diisi.';
+    if ($old['tgl_expired'] === '')
+        $err['tgl_expired'] = 'Tanggal kedaluwarsa wajib diisi.';
 
-        // ── Validasi utama: expired HARUS lebih besar dari masuk ────────────
-        if ($old['tgl_masuk'] !== '' && $old['tgl_expired'] !== '') {
-            if ($old['tgl_expired'] <= $old['tgl_masuk']) {
-                $err['tgl_expired'] = 'Tanggal kedaluwarsa harus SETELAH tanggal masuk ('
-                                    . date('d-m-Y', strtotime($old['tgl_masuk'])) . ').';
-            }
-        }
-
-        // Cek duplikat no_batch
-        if ($old['no_batch'] !== '' && !isset($err['no_batch'])) {
-            $cek = mysqli_fetch_assoc(mysqli_query($koneksi,
-                "SELECT id FROM produk WHERE no_batch = '$no_batch'"));
-            if ($cek) $err['no_batch'] = "Nomor batch \"$no_batch\" sudah digunakan.";
-        }
-
-        // ── INSERT jika tidak ada error ──────────────────────────────────────
-        if (empty($err)) {
-            $q = mysqli_query($koneksi, "INSERT INTO produk
-                (no_batch, nama_produk, kategori_id, harga_beli, harga_jual,
-                stok, stok_awal, tgl_masuk, tgl_expired, keterangan)
-                VALUES
-                ('$no_batch', '$nama_produk', {$old['kategori_id']},
-                {$old['harga_beli']}, {$old['harga_jual']},
-                {$old['stok']}, {$old['stok']},
-                '{$old['tgl_masuk']}', '{$old['tgl_expired']}', '$keterangan')");
-
-            if ($q) {
-                $pid = mysqli_insert_id($koneksi);
-                mysqli_query($koneksi, "INSERT INTO stok_log
-                    (produk_id, jenis, qty, stok_sebelum, stok_sesudah, keterangan)
-                    VALUES ($pid, 'masuk', {$old['stok']}, 0, {$old['stok']},
-                            'Batch baru: $no_batch')");
-                $pesan = 'success';
-                $old   = [];  // kosongkan form setelah berhasil
-            } else {
-                $pesan = 'db_error';
-            }
+    // ── Validasi utama: expired HARUS lebih besar dari masuk ────────────
+    if ($old['tgl_masuk'] !== '' && $old['tgl_expired'] !== '') {
+        if ($old['tgl_expired'] <= $old['tgl_masuk']) {
+            $err['tgl_expired'] = 'Tanggal kedaluwarsa harus SETELAH tanggal masuk ('
+                                . date('d-m-Y', strtotime($old['tgl_masuk'])) . ').';
         }
     }
 
-    $q_kat = mysqli_query($koneksi, "SELECT * FROM kategori ORDER BY nama_kategori");
+    // ────────────────────────────────────────────────────────────────────
+    // QUERY 1: Cek duplikat no_batch
+    // ────────────────────────────────────────────────────────────────────
+    //
+    // SEBELUM (rentan SQL Injection):
+    //   $cek = mysqli_fetch_assoc(mysqli_query($koneksi,
+    //       "SELECT id FROM produk WHERE no_batch = '$no_batch'"));
+    //   if ($cek) $err['no_batch'] = "Nomor batch \"$no_batch\" sudah digunakan.";
+    //
+    // SESUDAH (prepared statement):
+    if ($old['no_batch'] !== '' && !isset($err['no_batch'])) {
+        $stmt = $koneksi->prepare("SELECT id FROM produk WHERE no_batch = ?");
+        // "s" = tipe string untuk parameter pertama (?)
+        $stmt->bind_param("s", $old['no_batch']);
+        $stmt->execute();
+        $cek = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-    // Helper: nilai lama jika ada, fallback ke default
-    function old($field, $default = '') {
-        global $old;
-        return htmlspecialchars($old[$field] ?? $default);
+        if ($cek) $err['no_batch'] = "Nomor batch \"{$old['no_batch']}\" sudah digunakan.";
     }
+
+    // ── INSERT jika tidak ada error ──────────────────────────────────────
+    if (empty($err)) {
+
+        // ────────────────────────────────────────────────────────────────
+        // QUERY 2: INSERT ke tabel produk
+        // ────────────────────────────────────────────────────────────────
+        //
+        // SEBELUM (rentan SQL Injection):
+        //   $q = mysqli_query($koneksi, "INSERT INTO produk
+        //       (no_batch, nama_produk, kategori_id, harga_beli, harga_jual,
+        //        stok, stok_awal, tgl_masuk, tgl_expired, keterangan)
+        //       VALUES
+        //       ('$no_batch', '$nama_produk', {$old['kategori_id']},
+        //        {$old['harga_beli']}, {$old['harga_jual']},
+        //        {$old['stok']}, {$old['stok']},
+        //        '{$old['tgl_masuk']}', '{$old['tgl_expired']}', '$keterangan')");
+        //
+        // SESUDAH:
+        $stmt = $koneksi->prepare("INSERT INTO produk
+            (no_batch, nama_produk, kategori_id, harga_beli, harga_jual,
+             stok, stok_awal, tgl_masuk, tgl_expired, keterangan)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        //
+        // Penjelasan karakter tipe di bind_param("ssiddiisss", ...):
+        //   s = no_batch      (string)
+        //   s = nama_produk   (string)
+        //   i = kategori_id   (integer)
+        //   d = harga_beli    (double/float)
+        //   d = harga_jual    (double/float)
+        //   i = stok          (integer)
+        //   i = stok_awal     (integer)
+        //   s = tgl_masuk     (string, format 'YYYY-MM-DD')
+        //   s = tgl_expired   (string, format 'YYYY-MM-DD')
+        //   s = keterangan    (string)
+        $stmt->bind_param(
+            "ssiddiisss",
+            $old['no_batch'],
+            $old['nama_produk'],
+            $old['kategori_id'],
+            $old['harga_beli'],
+            $old['harga_jual'],
+            $old['stok'],
+            $old['stok'],         // stok_awal = sama dengan stok awal masuk
+            $old['tgl_masuk'],
+            $old['tgl_expired'],
+            $old['keterangan']
+        );
+        $stmt->execute();
+        $ok  = ($stmt->affected_rows > 0);
+        $pid = mysqli_insert_id($koneksi); // ambil ID baris yang baru diinsert
+        $stmt->close();
+
+        if ($ok) {
+            // ────────────────────────────────────────────────────────────
+            // QUERY 3: INSERT ke tabel stok_log
+            // ────────────────────────────────────────────────────────────
+            //
+            // SEBELUM:
+            //   mysqli_query($koneksi, "INSERT INTO stok_log
+            //       (produk_id, jenis, qty, stok_sebelum, stok_sesudah, keterangan)
+            //       VALUES ($pid, 'masuk', {$old['stok']}, 0, {$old['stok']},
+            //               'Batch baru: $no_batch')");
+            //
+            // SESUDAH:
+            $jenis        = 'masuk';
+            $stok_sebelum = 0;
+            $ket_log      = 'Batch baru: ' . $old['no_batch'];
+
+            $stmt2 = $koneksi->prepare("INSERT INTO stok_log
+                (produk_id, jenis, qty, stok_sebelum, stok_sesudah, keterangan)
+                VALUES (?, ?, ?, ?, ?, ?)");
+            //
+            // Penjelasan karakter tipe di bind_param("isiiis", ...):
+            //   i = produk_id     (integer)
+            //   s = jenis         (string: 'masuk')
+            //   i = qty           (integer)
+            //   i = stok_sebelum  (integer: 0)
+            //   i = stok_sesudah  (integer)
+            //   s = keterangan    (string)
+            $stmt2->bind_param(
+                "isiiis",
+                $pid,
+                $jenis,
+                $old['stok'],
+                $stok_sebelum,
+                $old['stok'],
+                $ket_log
+            );
+            $stmt2->execute();
+            $stmt2->close();
+
+            $pesan = 'success';
+            $old   = [];    // kosongkan form setelah berhasil
+        } else {
+            $pesan = 'db_error';
+        }
+    }
+}
+
+$q_kat = mysqli_query($koneksi, "SELECT * FROM kategori ORDER BY nama_kategori");
+
+// Helper: nilai lama jika ada, fallback ke default
+function old($field, $default = '') {
+    global $old;
+    return htmlspecialchars($old[$field] ?? $default);
+}
+?>
     ?>
     <!DOCTYPE html>
     <html lang="id">
