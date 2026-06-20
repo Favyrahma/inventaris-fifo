@@ -18,6 +18,18 @@ USE db_inventaris;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ------------------------------------------------------------
+-- 8. LOGIN_ATTEMPTS — rate limiting brute force protection
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS login_attempts;
+CREATE TABLE login_attempts (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45)  NOT NULL,
+    username   VARCHAR(50)  NOT NULL DEFAULT '',
+    attempted_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ip_time (ip_address, attempted_at)
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
 -- 1. USERS — akun login (admin & kasir)
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS users;
