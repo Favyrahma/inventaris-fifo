@@ -77,6 +77,8 @@
                             <li><a class="dropdown-item <?= nav_active('kategori.php',$current) ?>" href="kategori.php"><i class="bi bi-tags me-1"></i>Kategori</a></li>
                             <li><a class="dropdown-item <?= nav_active('users.php',$current) ?>" href="users.php"><i class="bi bi-people me-1"></i>Pengguna</a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item <?= nav_active('koreksi_stok.php',$current) ?>" href="koreksi_stok.php"><i class="bi bi-clipboard2-pulse me-1"></i>Koreksi Stok</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item <?= nav_active('setting.php',$current) ?>" href="setting.php"><i class="bi bi-sliders me-1"></i>Pengaturan EWS</a></li>
                         </ul>
                     </li>
