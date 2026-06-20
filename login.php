@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['login_time'] = time();       // untuk batas waktu mutlak
         $_SESSION['last_activity'] = time();    // untuk batas waktu idle
         $_SESSION['last_regen'] = time();       // untuk regenerasi ID sesi
+        $_SESSION['show_ews_alert'] = true;     // tampilkan popup EWS sekali setelah login
         header("Location: indeks.php");
         exit;
     } else { $error="Username atau password salah."; }

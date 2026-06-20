@@ -1,4 +1,4 @@
-    <?php
+<?php
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -10,12 +10,17 @@
     $role = $_SESSION['user_role'] ?? 'kasir';
     $nama = $_SESSION['user_nama'] ?? 'user';
 
-    // Hitung alert untuk navbar badge
+    // Hitung alert EWS untuk navbar badge & popup pertama login
     $tgl = date('Y-m-d');
-    //Query disesuaikan ke tabel produk anda
-    $q_alert = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM produk WHERE DATEDIFF(tgl_expired, '$tgl') <= 30 AND stok >0");
-    $r_alert  = mysqli_fetch_assoc($q_alert);
-    $total_alert = $r_alert['total'] ?? 0;
+    // Kritis: sisa hari 0..THRESHOLD_MERAH (ikut pengaturan EWS admin)
+    $q_kritis_nav = mysqli_query($koneksi, "SELECT COUNT(*) as t FROM produk WHERE DATEDIFF(tgl_expired, '$tgl') BETWEEN 0 AND $THRESHOLD_MERAH AND stok > 0");
+    $total_kritis_nav  = mysqli_fetch_assoc($q_kritis_nav)['t'] ?? 0;
+
+    // Sudah kedaluwarsa tapi stok masih ada (belum dikoreksi/dibuang)
+    $q_expired_nav = mysqli_query($koneksi, "SELECT COUNT(*) as t FROM produk WHERE tgl_expired < '$tgl' AND stok > 0");
+    $total_expired_nav = mysqli_fetch_assoc($q_expired_nav)['t'] ?? 0;
+
+    $total_alert = $total_kritis_nav + $total_expired_nav;   // dipakai badge navbar
 
     $current = basename($_SERVER['PHP_SELF']);
     function nav_active($page, $current) {
@@ -102,6 +107,65 @@
             </div>
         </div>
     </nav>
+    <?php
+    // ── Pop-up peringatan EWS saat pertama kali login ───────────────────────
+    // Flag di-set oleh login.php saat login berhasil, lalu di-unset di sini
+    // supaya popup hanya muncul SEKALI per sesi login (tidak setiap pindah halaman).
+    $tampilkan_popup_ews = false;
+    if (!empty($_SESSION['show_ews_alert'])) {
+        unset($_SESSION['show_ews_alert']);
+        $tampilkan_popup_ews = ($total_alert > 0);
+    }
+    ?>
+    <?php if ($tampilkan_popup_ews): ?>
+    <!-- Modal popup peringatan EWS (muncul otomatis sekali setelah login) -->
+    <div class="modal fade" id="modalEwsAlert" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+        <div class="modal-header border-0 py-3" style="background:linear-gradient(135deg,#dc2626,#f59e0b)">
+            <div class="d-flex align-items-center gap-2 text-white">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            <h6 class="modal-title fw-bold mb-0">Peringatan Early Warning System</h6>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body py-4 px-4">
+            <p class="text-muted mb-3" style="font-size:.9rem">
+            Ada produk yang memerlukan perhatian Anda sebelum mulai bekerja:
+            </p>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+            <?php if ($total_expired_nav > 0): ?>
+                <li class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:#f1f3f5">
+                <span><i class="bi bi-x-octagon-fill text-secondary me-2"></i>Sudah kedaluwarsa</span>
+                <span class="badge bg-secondary rounded-pill"><?= $total_expired_nav ?> batch</span>
+                </li>
+            <?php endif; ?>
+            <?php if ($total_kritis_nav > 0): ?>
+                <li class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:#fff5f5">
+                <span><i class="bi bi-exclamation-circle-fill text-danger me-2"></i>Mendekati kedaluwarsa (&le; <?= (int)$THRESHOLD_MERAH ?> hari)</span>
+                <span class="badge bg-danger rounded-pill"><?= $total_kritis_nav ?> batch</span>
+                </li>
+            <?php endif; ?>
+            </ul>
+        </div>
+        <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Tutup
+            </button>
+            <a href="laporan_expired.php" class="btn btn-dark btn-sm px-3">
+            <i class="bi bi-eye me-1"></i>Lihat Detail
+            </a>
+        </div>
+        </div>
+    </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elEws = document.getElementById('modalEwsAlert');
+        if (elEws) { new bootstrap.Modal(elEws).show(); }
+    });
+    </script>
+    <?php endif; ?>
     <?php
     // ── Peringatan timeout di sisi klien ────────────────────────────────────
     // Hanya inject jika user sudah login (session ada)
