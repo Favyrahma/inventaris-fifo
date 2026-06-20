@@ -1,4 +1,4 @@
-  <?php
+<?php
   include 'koneksi.php';
   cek_login();
   $tgl = date('Y-m-d');
@@ -38,6 +38,25 @@
           JOIN transaksi tr ON dt.transaksi_id = tr.id
           WHERE DATE(tr.created_at) = '$d'"));
       $grafik_data[] = $q['t'];
+  }
+
+  // ── Grafik nilai stok per kategori ────────────────────────────────────────
+  $q_nilai_kat = mysqli_query($koneksi,
+      "SELECT k.nama_kategori,
+              COALESCE(SUM(p.stok * p.harga_beli), 0) AS nilai_stok,
+              COUNT(p.id) AS jumlah_batch
+       FROM kategori k
+       LEFT JOIN produk p ON p.kategori_id = k.id AND p.stok > 0
+       GROUP BY k.id, k.nama_kategori
+       ORDER BY nilai_stok DESC");
+
+  $kat_labels  = [];
+  $kat_nilai   = [];
+  $kat_batch   = [];
+  while ($row = mysqli_fetch_assoc($q_nilai_kat)) {
+      $kat_labels[] = "'" . addslashes($row['nama_kategori']) . "'";
+      $kat_nilai[]  = (float)$row['nilai_stok'];
+      $kat_batch[]  = (int)$row['jumlah_batch'];
   }
 
   // ── Tabel FIFO ────────────────────────────────────────────────────────────
@@ -293,6 +312,26 @@
       </div>
     </div>
 
+    <!-- ── Grafik Nilai Stok per Kategori ── -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card chart-card p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-semibold mb-0">
+              <i class="bi bi-layers-half me-2 text-primary"></i>Nilai Stok per Kategori
+              <span class="badge bg-primary bg-opacity-10 text-primary fw-normal ms-2" style="font-size:.75rem">Rp · Harga Beli × Stok</span>
+            </h6>
+            <a href="laporan_stok.php" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-arrow-right me-1"></i>Detail Stok
+            </a>
+          </div>
+          <div style="position:relative; height:<?= max(160, count($kat_nilai) * 44) ?>px;">
+            <canvas id="chartNilaiKat"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tabel FIFO -->
     <div class="card chart-card">
       <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2 px-3">
@@ -445,5 +484,103 @@
       }
   });
   </script>
-  </body>
+
+  <script>
+  // ── Horizontal Bar: Nilai Stok per Kategori ──────────────────────────────
+  (function () {
+    const katLabels = [<?= implode(',', $kat_labels) ?>];
+    const katNilai  = [<?= implode(',', $kat_nilai) ?>];
+    const katBatch  = [<?= implode(',', $kat_batch) ?>];
+
+    // Warna gradasi biru-ungu per bar
+    const palette = [
+      '#0d6efd','#3d8bfd','#6ea8fe','#0dcaf0','#6f42c1',
+      '#9163de','#198754','#20c997','#fd7e14','#dc3545'
+    ];
+    const bgColors = katLabels.map((_, i) => palette[i % palette.length]);
+
+    // Format rupiah ringkas
+    function fmtRp(val) {
+      if (val >= 1e9)  return 'Rp ' + (val/1e9).toFixed(1) + ' M';
+      if (val >= 1e6)  return 'Rp ' + (val/1e6).toFixed(1) + ' Jt';
+      if (val >= 1e3)  return 'Rp ' + (val/1e3).toFixed(0) + ' Rb';
+      return 'Rp ' + val.toFixed(0);
+    }
+
+    new Chart(document.getElementById('chartNilaiKat'), {
+      type: 'bar',
+      data: {
+        labels: katLabels,
+        datasets: [{
+          label: 'Nilai Stok',
+          data: katNilai,
+          backgroundColor: bgColors.map(c => c + 'cc'),
+          borderColor: bgColors,
+          borderWidth: 2,
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 28
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const i = ctx.dataIndex;
+                return [
+                  '  Nilai: ' + new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', maximumFractionDigits:0}).format(ctx.parsed.x),
+                  '  Batch aktif: ' + katBatch[i] + ' batch'
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: val => fmtRp(val),
+              font: { size: 11 }
+            },
+            grid: { color: '#e9ecef' }
+          },
+          y: {
+            ticks: { font: { size: 12 }, color: '#343a40' },
+            grid: { display: false }
+          }
+        },
+        onClick: function() {
+          window.location.href = '<?= $url_produk ?>';
+        },
+        onHover: function(event, elements) {
+          event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        }
+      },
+      plugins: [{
+        id: 'valueLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          chart.getDatasetMeta(0).data.forEach((bar, i) => {
+            const val = katNilai[i];
+            if (val <= 0) return;
+            const xPos = bar.x + 8;
+            const yPos = bar.y;
+            ctx.save();
+            ctx.fillStyle = '#343a40';
+            ctx.font = 'bold 11px Segoe UI, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(fmtRp(val), xPos, yPos);
+            ctx.restore();
+          });
+        }
+      }]
+    });
+  })();
+  </script>
   </html>
